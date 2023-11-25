@@ -109,7 +109,7 @@ class xMiner(loader.Module):
 
     @loader.command()
     async def emcfg(self,message):
-        '''- Конфиг модуля MevoMiner'''
+        '''- Конфиг модуля xMiner'''
         if self.get('ag'):
             dpg = ' ▫️ <i>Включать копание после убийства босса</i>\n'
         else:
