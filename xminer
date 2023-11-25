@@ -7,10 +7,10 @@ from ..inline.types import InlineCall
 import inspect
 
 @loader.tds
-class MevoMiner(loader.Module):
+class xMiner(loader.Module):
     '''Модуль для автоматического копание в боте MineEvo'''
     strings = {
-        "name" : "MevoMiner"
+        "name" : "xMiner"
     }
     async def client_ready(self,client,db):
         self.bb = False
