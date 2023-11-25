@@ -31,7 +31,7 @@ class xMiner(loader.Module):
             self.set('fw', False)
 
     @loader.command()
-    async def mmm(self,message):
+    async def kop(self,message):
         '''- Включить/выключить копание'''
         self.set('mm', not self.get('mm'))
         
