@@ -32,34 +32,34 @@ class xMiner(loader.Module):
 
     @loader.command()
     async def kop(self, message):
-        '''- Включить/выключить копание или установить задержку копания [значение]'''
+        '''- Включить/выключить копание или изменить задержку'''
         args = utils.get_args_split_by(message, " ")
-        cmd = f'{utils.escape_html(self.get_prefix())}{inspect.currentframe().f_code.co_name}'
+        
         if args:
-            cmd = f'{utils.escape_html(self.get_prefix())}{inspect.currentframe().f_code.co_name} {utils.get_args_raw(message)}'
+            await self.emdly(message)  # Вызываем функцию emdly с передачей сообщения в случае наличия аргументов
         else:
-            # Логика включения/выключения копания
             self.set('mm', not self.get('mm'))
+
             if self.get('mm'):
                 await self.client.send_message(message.chat_id, "⛏ <b>Копание включено</b>")
                 await message.delete()
             else:
                 await self.client.send_message(message.chat_id, "⛏ <b>Копание выключено</b>")
                 await message.delete()
+            while self.get('mm'):
+                dly = self.get('dly')
+                try:
+                    await self.client.send_message("@mine_evo_bot", "коп")
+                    await asyncio.sleep(dly)
+                except errors.FloodWaitError as f:
+                    self.set('mm', False)
+                    se = f.seconds 
+                    see = se + 5
+                    if self.get('fw'):
+                        await asyncio.sleep(see)
+                        await self.kop(message)
 
-        # Логика установки задержки копания
-        if len(args) == 1:
-            zz = args[0]
-            try:
-                zz = float(zz)
-                self.set('dly', zz)
-                await utils.answer(message, f"✅ <b>Успешно!\nЗадержка копания изменена на {zz}</b> ")
-            except ValueError:
-                await utils.answer(message, f"<emoji document_id=5240241223632954241>🚫</emoji> <b>Ошибка | {cmd}\nУкажите число в значении!</b>")
-        elif len(args) > 1:
-            await utils.answer(message, f'<emoji document_id=5240241223632954241>🚫</emoji><b> Ошибка | {cmd}\nВы указали больше одного аргумента')
-
-        # Цикл копания
+    async def start_mining(self, call: InlineCall):
         while self.get('mm'):
             dly = self.get('dly')
             try:
@@ -71,7 +71,7 @@ class xMiner(loader.Module):
                 see = se + 5
                 if self.get('fw'):
                     await asyncio.sleep(see)
-                    await self.mmm(message)
+                    await self.kop(call._event)
     @loader.watcher()
     async def bosses_fw(self,message):
         dly = self.get('dly')
@@ -80,13 +80,13 @@ class xMiner(loader.Module):
             if self.get('mm'):
                 if message.chat_id == 5522271758 and "🔶 Ты выбрал босса" in message.raw_text:
                     self.bb = True
-                    await self.mmm(message)
+                    await self.kop(message)
         if self.get('ag'):
             if self.bb:
                 if message.chat_id == 5522271758 and "для атаки выбери босса" in message.raw_text:
                     self.bb = False
                     await asyncio.sleep(dly)
-                    await self.mmm(message)
+                    await self.kop(message)
     @loader.command(alias = 'msc')
     async def emdly(self,message: Message):
         '''- Установить задержку копания [значение]'''
@@ -109,7 +109,7 @@ class xMiner(loader.Module):
 
     @loader.command()
     async def emcfg(self,message):
-        '''- Конфиг модуля xMiner'''
+        '''- Конфиг модуля MevoMiner'''
         if self.get('ag'):
             dpg = ' ▫️ <i>Включать копание после убийства босса</i>\n'
         else:
@@ -139,6 +139,62 @@ class xMiner(loader.Module):
                         'text' : '⏱ Задержка копания ',
                         'callback' : self.mdlym,
                     },
+                    {
+                        'text' : '➕ Дополнительные параметры',
+                        'callback' : self.idd,
+                    },
+                ],
+                [
+                    {
+                        'text' : '🔻 Закрыть',
+                        'action' : 'close'
+                    }
+                ]
+            ]
+        )
+    async def ikop(self,call:InlineCall):
+        self.set('mm', not self.get('mm'))
+        
+        if self.get('mm'):
+            dpm = "Копание включено"
+            asyncio.create_task(self.start_mining(call))  # Запускаем копание в фоновой задаче
+        else:
+            dpm = "Копание выключено"
+        
+        if self.get('ag'):
+            dpg = ' ▫️ <i>Включать копание после убийства босса</i>\n'
+        else:
+            dpg = ''
+        
+        if self.get('as'):
+            dps = ' ▫️ <i>Выключать копание во время убийства босса</i>\n'
+        else:
+            dps = ''
+        
+        if self.get('fw'):
+            dpf = ' ▫️ <i>Включать копание после FloodWait</i>\n'
+        else: 
+            dpf = ''
+        
+        if self.get('mm'):
+            dpm = 'Включено'
+        else:
+            dpm = 'Выключено'
+        await call.edit(
+            text=f"<emoji document_id=5981043230160981261>⏱</emoji> <b>Задержка копания:</b> <code>{self.get('dly')}</code>\n⛏ <b>Статус копания:</b> <i>{dpm}</i>\n<b>➕ Дополнительные параметры:</b>\n{dpg}{dpf}\n\n",
+            reply_markup=[
+                [
+                    {
+                        'text' : "Включить копание" if not self.get('mm') else "Выключить копание",
+                        'callback' : self.ikop,
+                    },
+                    {
+                        'text' : '⏱ Задержка копания ',
+                        'callback' : self.mdlym,
+                    },
+                ],
+                [    
+
                     {
                         'text' : '➕ Дополнительные параметры',
                         'callback' : self.idd,
